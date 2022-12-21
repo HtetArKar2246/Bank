@@ -1,0 +1,336 @@
+//bank system
+//created by Htet ArKar on 15.12.2022
+
+#include<iostream>
+#include<fstream>
+#include<ctime>
+
+using namespace std;
+
+class Bank{
+  public:
+   Bank(){
+    cout<<"Welcome To Our Bank!!"<<endl;
+  }
+    int userPasswordArray[100];//password array
+    int amountArray[100];//amount array
+    string userNameArray[100];//name array
+    int loginRecorded=0;//to check at least ont time login or not
+   int location=0;//to control array/ num of array
+   int currentID;//to know who is logging in
+  int receiverID;//ID of receiver
+   void mainMenu();//display option
+   void reGister();//display register option
+   void login();//display login option
+   void banking();//Banking Functions
+   void myInfo(int currentID);//show user info
+   void transfer(string toTransferName,int toTransferAmount);//to transfer
+   int checkTransferID_and_Name(string toTransferName);//to check transfer ID and Name
+   int checkAmount();//check money to transfer
+   int usernameCondition(string userName);//check username is taken or not
+   int withdraw();//withdraw function
+   void update();//update money
+};
+
+int main(){
+   Bank _obj;
+  _obj.mainMenu();
+    return 0;
+}
+
+void Bank::mainMenu(){//display option
+   int option;
+   while (true)
+   {
+   cout<<"\n1:Register\n2:Login\n3:Quit\n"<<endl;
+   cin>>option;
+   if(option==1){//Register
+      reGister();
+      loginRecorded=1;
+   }else if(option==2){//Login
+   if(loginRecorded==1){
+       login();
+   }else{
+    cout<<"\nThere is no acc logged in"<<endl;
+   }
+    }else if(option==3){//Quit
+    cout<<"\nBye Bye"<<endl;
+      exit(1);
+   }else{
+    cout<<"\nUnknown Input!!"<<endl;
+   }
+   }
+}
+
+void Bank::reGister(){//display register option
+  string userName;
+  int password1;
+  int password2;
+  int money;
+  int returnNum=0;
+  int returnNum2=0;
+  int option=0;
+  while(returnNum2!=1){
+    cout<<"\n1:Keep Registration\n2:Back\n"<<endl;
+    cin>>option;
+  if(option==1){//keep registration
+   cout<<"\nEnter Name To Register: ";//Name To Register
+   cin>>userName;
+   int userNameReturn=usernameCondition(userName); //condition username
+   if(userNameReturn==1){
+     cout<<"\nName has been taken!!"<<endl;
+     cout<<"\nEnter Name To Register: ";//Name To Register
+    cin>>userName;
+    int userNameReturn=usernameCondition(userName); //condition username
+   }else{
+     userNameArray[location]=userNameReturn;
+   }
+  while(returnNum!=1){
+  cout<<"Enter Password To Register(only integer): ";//Password To Register
+  cin>>password1;
+  cout<<"Confirm Password: ";//Confirm Password
+  cin>>password2;
+  userNameArray[location]=userName;
+  if(password1==password2){
+    userPasswordArray[location]=password1;  
+    returnNum=1;
+    cout<<"Enter Amount: ";//Amount To Register
+    cin>>money;
+    amountArray[location]=money;
+  }else{
+    cout<<"\npassword must be same"<<endl;
+  }
+  }
+  ++location;
+  returnNum2=1;
+  }else if(option==2){//back to main menu
+    mainMenu();
+    returnNum=1;
+  }else{
+    cout<<"\nUnknown Input!!"<<endl;
+  }
+  }
+}
+
+void Bank::login(){//display login option
+  string loginName;
+  int loginPassword;
+  int returnNum=0;
+  int returnNum2=0;
+  int option;
+  while(returnNum2!=1){
+    cout<<"\n1:Keep Login\n2:Back\n"<<endl;
+    cin>>option;
+    if(option==1){//keep login
+  while(returnNum!=1){
+  cout<<"\nEnter Name To Login: ";//Name to login
+  cin>>loginName;
+  cout<<"Enter Password To Login: ";//password to login
+  cin>>loginPassword;
+  for(int a=0; a<=location; a++){
+    if(userNameArray[a]==loginName && userPasswordArray[a]==loginPassword){
+        cout<<"\nLogin Success!!"<<endl;
+        currentID=a;
+        returnNum=1;
+      banking();
+    }
+  }
+  if(returnNum!=1){
+    cout<<"Couldn't Login"<<endl;
+    mainMenu();
+  }
+  returnNum2=1;
+  }
+  }else if(option==2){//back to main menu
+    mainMenu();
+    returnNum2=1;
+  }else{
+    cout<<"\nUnknown Input!!"<<endl;
+  }
+}
+}
+
+void Bank::banking(){//Banking Functions
+  int bankingOption;
+  int returnNum=0;
+  int toTransferAmount;
+  string toTransferName;
+  while(bankingOption!=10){//while loop A
+    cout<<"\n1:Transfer\n2:Withdraw\n3:Update\n4:My Info\n5:Main Menu\n"<<endl;
+    cin>>bankingOption;
+    if(bankingOption==1){//to transfer
+    int option;
+      cout<<"\n1:Transfer\n2:History\n"<<endl;
+      cin>>option;
+      if(option==1){
+      int toTransferAmount=checkAmount();//check money to transfer
+      cout<<"Enter Name To Transfer: ";
+      cin>>toTransferName;
+      transfer(toTransferName,toTransferAmount);
+      bankingOption=10;//to control while loop A
+      }else if(option==2){//to show history of transfer
+        ofstream historyTransferFile(userNameArray[currentID]+".txt");
+        if(!historyTransferFile.is_open()){
+          cout<<"\nCouldn't Show History!!"<<endl;
+        }else{
+          //to print all history by using vector!*****
+          historyTransferFile.close();
+        }
+      }else{
+        cout<<"\nUnknown Input!!"<<endl;
+      }
+    }else if(bankingOption==2){//to withdraw
+      withdraw();
+      bankingOption=10;//to control while loop A
+    }else if(bankingOption==3){//to update
+      update();
+      bankingOption=10;//to control while loop A
+    }else if(bankingOption==4){//to show user info
+       myInfo(currentID);
+       bankingOption=10;
+       banking();
+      }else if(bankingOption==5){//back to main menu
+       mainMenu();
+      bankingOption=10;//to control while loop A
+    }else{
+      cout<<"\nUnknown Input!!"<<endl;
+    }
+    }
+  }
+
+void Bank::myInfo(int currentID){//show user info
+    cout<<"\nName: "<<userNameArray[currentID]<<endl;
+    cout<<"Password: "<<userPasswordArray[currentID]<<endl;
+    cout<<"Money: "<<amountArray[currentID]<<endl;
+} 
+
+void Bank::transfer(string toTransferName,int toTransferAmount){
+   int toTransferID=checkTransferID_and_Name(toTransferName);
+   if(toTransferID==-1){
+    cout<<"\nCouldn't find "<<toTransferName<<" acc"<<endl;
+    banking();
+   }else{
+     amountArray[currentID]=amountArray[currentID]-toTransferAmount;
+     amountArray[toTransferID]=amountArray[toTransferID]+toTransferAmount;
+     cout<<"\nSuccessfully Transferred To= "<<toTransferName<<endl;
+     cout<<"Transferred Amount= "<<toTransferAmount<<endl;
+     // date and time for transfer records file
+       time_t now = time(0);
+       char* dateAndTime= ctime(&now);
+    //recorded transfer file
+     string recordedTransferFileName="/home/user/Desktop/program/bank/Recorded Transfer/"+userNameArray[currentID]+".txt";
+     ofstream recordedTransferFile(recordedTransferFileName,ios::app);
+     if(recordedTransferFile.is_open()){
+     string recordOfTransfer="From: "+userNameArray[currentID]+"   To: "+toTransferName+"    Amount: "+to_string(toTransferAmount)+"  Time: "+dateAndTime+"\n";//to record in file
+     recordedTransferFile<<recordOfTransfer;
+     recordedTransferFile.close();
+     cout<<"\nSaved Progress!!"<<endl;
+     }else{
+      cout<<"\nCouldn't save progress!!"<<endl;
+     }
+     banking();
+   }
+}
+
+int Bank::checkTransferID_and_Name(string toTransferName){
+   for(int i=0;i<location; i++){
+    if(toTransferName==userNameArray[i]){
+      return i;
+    }
+   }
+   return -1;
+}
+
+int Bank::checkAmount(){// check money to transfer
+  int toTransferAmount;
+   cout<<"\nEnter Money To Transfer: ";
+   cin>>toTransferAmount;
+   if(!(amountArray[currentID]-1000<toTransferAmount)){
+     return toTransferAmount;
+   }else{
+    cout<<"\nNot Enough Money"<<endl;
+    cout<<"Note:: You must left at least 1000"<<endl;
+    banking();
+   }
+   return -1;
+}
+
+int Bank::usernameCondition(string userName){//check username is taken or not
+   for(int i=0; i<=location;i++){
+    if(userNameArray[i]==userName){
+      return 1 ;
+    }
+   }
+    return 0;
+}
+
+int Bank::withdraw(){//withdraw function
+    int withdrawAmount;
+    cout<<"Enter amount you want to withdraw: ";
+    cin>>withdrawAmount;
+   if(amountArray[currentID]-1000<withdrawAmount){
+    cout<<"\nCouldn't withdraw!!"<<endl;
+    banking();
+   }else{
+    amountArray[currentID]=amountArray[currentID]-withdrawAmount;
+    cout<<"\nMoney: "<<amountArray[currentID]<<endl;
+    banking();
+   }
+   return 0;
+}
+
+void Bank::update(){//update money
+   int option;
+   while(1){
+   cout<<"\n1:Username\n2:Password\n3:Money\n4:Back\n"<<endl;
+   cin>>option;
+   if(option==3){
+    int toUpdateAmount;
+     cout<<"Enter Money To Update: ";
+     cin>>toUpdateAmount;
+     amountArray[currentID]=amountArray[currentID]+toUpdateAmount;
+     cout<<"\nSuccessfully Update!!"<<endl;
+     myInfo(currentID);
+     continue;
+   }else if(option==1){
+    string userName;
+    int returnNum=1;
+    while(returnNum==1){
+      cout<<"\nEnter Name To Update: ";//Name To Update
+      cin>>userName;
+     for(int i=0; i<=location;i++){
+     if(userNameArray[i]==userName){
+       cout<<"\nusername has been taken!!"<<endl;
+       cout<<"\nEnter Name To Update: ";//Name To Update
+       cin>>userName;
+    }
+   }
+    userNameArray[currentID]=userName;
+    cout<<"\nSuccessfully Update!!"<<endl;
+    myInfo(currentID);
+    returnNum=2;
+    update();
+    }
+   }else if(option==2){
+  while(1){
+    int password1;
+    int password2;
+   cout<<"\nEnter Password To Update(only integer): ";//Password To Update
+   cin>>password1;
+   cout<<"Confirm Password: ";//Confirm Password
+   cin>>password2;
+  if(password1==password2){
+    userPasswordArray[currentID]=password1; 
+   cout<<"\nSuccessfully Update!!"<<endl;
+    myInfo(currentID);
+    break;
+  }else{
+    cout<<"\npassword must be same"<<endl;
+    continue;
+  }
+  }
+   }else if(option==4){
+     banking();
+   }
+   }
+}
